@@ -14,8 +14,8 @@ services:
     command: --port 8082 --host 0.0.0.0 --workers 1
 
     volumes:
-      # Mount the prompt.yaml file to the container, path should be absolute
-      - ${PROMPT_CONFIG_FILE}:${PROMPT_CONFIG_FILE}
+      # Mount the prompt.yaml file to the container
+      - ../../src/nvidia_rag/rag_server/prompt.yaml:/prompt.yaml
       # Please mount the volume to the container to the path specified here
       - ${INGESTOR_SERVER_EXTERNAL_VOLUME_MOUNT:-./volumes/ingestor-server}:${INGESTOR_SERVER_DATA_DIR:-/data/}
 
