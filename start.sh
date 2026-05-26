@@ -68,7 +68,7 @@ export NVIDIA_API_KEY="${NVIDIA_API_KEY:-$NGC_API_KEY}"
 
 # ── 3. Authenticate with NGC container registry ───────────────────────────────
 info "Logging in to nvcr.io ..."
-if echo "${NGC_API_KEY}" | docker login nvcr.io -u '$oauthtoken' --password-stdin --quiet 2>&1; then
+if echo "${NGC_API_KEY}" | docker login nvcr.io -u '$oauthtoken' --password-stdin 2>&1; then
     success "Docker authenticated with nvcr.io."
 else
     error "Docker login failed. Check your API key."
