@@ -1,0 +1,59 @@
+# Format: timestamp severity service env src_ip user event detail
+2026-05-20T08:12:01Z INFO  auth-service dev  10.0.1.45   alice@acme.com   LOGIN_SUCCESS   method=password
+2026-05-20T08:14:33Z INFO  auth-service dev  10.0.1.45   bob@acme.com     LOGIN_SUCCESS   method=password
+2026-05-20T08:22:17Z INFO  auth-service stg  10.0.2.101  carol@acme.com   LOGIN_SUCCESS   method=sso
+2026-05-20T09:01:55Z INFO  auth-service prod 10.0.3.200  dave@acme.com    LOGIN_SUCCESS   method=sso
+2026-05-20T09:44:02Z WARN  auth-service prod 10.0.3.201  eve@acme.com     LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-20T09:44:45Z WARN  auth-service prod 10.0.3.201  eve@acme.com     LOGIN_FAIL      method=password reason=wrong_password attempt=2
+2026-05-20T09:46:10Z INFO  auth-service prod 10.0.3.201  eve@acme.com     LOGIN_SUCCESS   method=password attempt=3
+
+2026-05-21T00:03:14Z WARN  auth-service prod 203.0.113.77  admin@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:03:15Z WARN  auth-service prod 203.0.113.77  root@acme.com    LOGIN_FAIL      method=password reason=user_not_found attempt=1
+2026-05-21T00:03:16Z WARN  auth-service prod 203.0.113.77  administrator@acme.com LOGIN_FAIL method=password reason=user_not_found attempt=1
+2026-05-21T00:03:18Z WARN  auth-service prod 203.0.113.77  admin@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=2
+2026-05-21T00:03:20Z WARN  auth-service prod 203.0.113.77  admin@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=3
+2026-05-21T00:03:22Z ERROR auth-service prod 203.0.113.77  admin@acme.com   ACCOUNT_LOCKED  method=password reason=max_attempts_exceeded lockout_minutes=30
+2026-05-21T00:03:25Z WARN  auth-service prod 203.0.113.88  frank@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:03:26Z WARN  auth-service prod 203.0.113.88  grace@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:03:28Z WARN  auth-service prod 203.0.113.88  henry@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:03:30Z WARN  auth-service prod 203.0.113.99  alice@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:03:31Z WARN  auth-service prod 203.0.113.99  alice@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=2
+2026-05-21T00:03:33Z WARN  auth-service prod 203.0.113.99  alice@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=3
+2026-05-21T00:03:35Z ERROR auth-service prod 203.0.113.99  alice@acme.com   ACCOUNT_LOCKED  method=password reason=max_attempts_exceeded lockout_minutes=30
+2026-05-21T00:03:38Z WARN  auth-service prod 203.0.113.100 bob@acme.com     LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:03:40Z WARN  auth-service prod 203.0.113.100 bob@acme.com     LOGIN_FAIL      method=password reason=wrong_password attempt=2
+2026-05-21T00:03:42Z WARN  auth-service prod 203.0.113.100 carol@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:03:44Z WARN  auth-service prod 203.0.113.100 dave@acme.com    LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:03:47Z ERROR auth-service prod 203.0.113.77  BRUTE_FORCE_DETECTED src_cidr=203.0.113.0/24 failed_attempts=24 accounts_targeted=8 window_seconds=33
+2026-05-21T00:03:48Z ERROR auth-service prod 203.0.113.77  IP_BLOCKED          src_cidr=203.0.113.0/24 block_duration_minutes=60 reason=brute_force
+2026-05-21T00:04:12Z WARN  auth-service stg  203.0.113.77  admin@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:04:15Z WARN  auth-service stg  203.0.113.77  admin@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=2
+2026-05-21T00:04:17Z ERROR auth-service stg  203.0.113.77  IP_BLOCKED          src_cidr=203.0.113.0/24 block_duration_minutes=60 reason=shared_block_policy
+
+2026-05-21T00:48:22Z WARN  auth-service prod 198.51.100.14 alice@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1 note=known_credential_stuffing_ip
+2026-05-21T00:48:25Z WARN  auth-service prod 198.51.100.14 carol@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:48:28Z WARN  auth-service prod 198.51.100.14 frank@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:48:31Z WARN  auth-service prod 198.51.100.14 henry@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:48:34Z WARN  auth-service prod 198.51.100.14 grace@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-21T00:48:36Z WARN  auth-service prod 198.51.100.14 ivan@acme.com    LOGIN_SUCCESS   method=password note=likely_compromised_credential
+2026-05-21T00:48:37Z ERROR auth-service prod 198.51.100.14 CREDENTIAL_STUFFING_DETECTED valid_logins=1 failed_logins=5 src_ip=198.51.100.14 compromised_account=ivan@acme.com
+2026-05-21T00:48:38Z INFO  auth-service prod 198.51.100.14 ivan@acme.com    SESSION_REVOKED reason=security_policy user_notified=true
+2026-05-21T00:48:39Z INFO  auth-service prod 198.51.100.14 ivan@acme.com    FORCED_PASSWORD_RESET reason=possible_compromise
+
+2026-05-21T01:04:00Z INFO  auth-service prod -             -                IP_UNBLOCKED    src_cidr=203.0.113.0/24 reason=block_expired
+2026-05-21T08:10:01Z INFO  auth-service prod 10.0.3.205   alice@acme.com   LOGIN_SUCCESS   method=password note=post_lockout_reset
+2026-05-21T08:15:44Z INFO  auth-service prod 10.0.3.202   carol@acme.com   LOGIN_SUCCESS   method=sso
+2026-05-21T08:22:30Z INFO  auth-service dev  10.0.1.46    bob@acme.com     LOGIN_SUCCESS   method=password
+
+2026-05-22T07:00:14Z INFO  auth-service prod 10.0.3.210   dave@acme.com    LOGIN_SUCCESS   method=sso
+2026-05-22T07:30:05Z INFO  auth-service stg  10.0.2.102   grace@acme.com   LOGIN_SUCCESS   method=password
+2026-05-22T09:14:52Z WARN  auth-service prod 10.0.3.211   henry@acme.com   LOGIN_FAIL      method=password reason=wrong_password attempt=1
+2026-05-22T09:15:20Z INFO  auth-service prod 10.0.3.211   henry@acme.com   LOGIN_SUCCESS   method=password attempt=2
+2026-05-22T10:05:33Z INFO  auth-service prod 10.0.3.212   frank@acme.com   TOKEN_REFRESH   method=jwt ttl_seconds=3600
+2026-05-22T14:31:08Z INFO  auth-service prod 10.0.3.213   dave@acme.com    LOGIN_SUCCESS   method=sso
+
+# Summary stats for 2026-05-21:
+# prod: LOGIN_FAIL=38, ACCOUNT_LOCKED=2, IP_BLOCKED=1, CREDENTIAL_STUFFING_DETECTED=1
+# stg:  LOGIN_FAIL=2,  IP_BLOCKED=1
+# dev:  LOGIN_FAIL=0
+# Anomaly window: 00:03–00:49 UTC, source CIDRs 203.0.113.0/24 and 198.51.100.0/24

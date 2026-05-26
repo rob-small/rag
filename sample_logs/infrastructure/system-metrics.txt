@@ -1,0 +1,79 @@
+# Infrastructure metrics log — region: us-east-1, collected by node-exporter + collectd
+# Format: timestamp  host  metric  value  unit  tags
+#
+# --- 2026-05-15 (cluster-prod-us-east incident day) ---
+
+2026-05-15T18:00:00Z  node-02  mem.used_percent    62.4   %     env=prod,cluster=cluster-prod-us-east
+2026-05-15T18:05:00Z  node-02  mem.used_percent    65.1   %     env=prod,cluster=cluster-prod-us-east
+2026-05-15T18:10:00Z  node-02  mem.used_percent    71.8   %     env=prod,cluster=cluster-prod-us-east
+2026-05-15T18:15:00Z  node-02  mem.used_percent    78.3   %     env=prod,cluster=cluster-prod-us-east
+2026-05-15T18:20:00Z  node-02  mem.used_percent    84.7   %     env=prod,cluster=cluster-prod-us-east
+2026-05-15T18:25:00Z  node-02  mem.used_percent    89.2   %     env=prod,cluster=cluster-prod-us-east
+2026-05-15T18:30:00Z  node-02  mem.used_percent    93.6   %     env=prod,cluster=cluster-prod-us-east
+2026-05-15T18:32:44Z  node-02  mem.used_percent    97.8   %     env=prod,cluster=cluster-prod-us-east,alert=NodeMemoryPressure
+2026-05-15T18:35:00Z  node-02  mem.used_percent    91.2   %     env=prod,cluster=cluster-prod-us-east,note=post_eviction
+2026-05-15T18:40:00Z  node-02  mem.used_percent    88.4   %     env=prod,cluster=cluster-prod-us-east
+2026-05-15T19:00:00Z  node-02  mem.used_percent    95.5   %     env=prod,cluster=cluster-prod-us-east,alert=NodeMemoryPressure
+2026-05-15T19:01:22Z  node-02  mem.used_percent    98.9   %     env=prod,cluster=cluster-prod-us-east,alert=OOMKill
+2026-05-15T19:05:10Z  node-02  mem.used_percent    55.1   %     env=prod,cluster=cluster-prod-us-east,note=after_drain
+2026-05-15T19:20:00Z  node-02  mem.used_percent    38.4   %     env=prod,cluster=cluster-prod-us-east,note=uncordoned
+
+2026-05-15T18:00:00Z  node-02  cpu.used_percent    44.2   %     env=prod,cluster=cluster-prod-us-east
+2026-05-15T18:30:00Z  node-02  cpu.used_percent    52.1   %     env=prod,cluster=cluster-prod-us-east
+2026-05-15T19:01:22Z  node-02  cpu.used_percent    88.7   %     env=prod,cluster=cluster-prod-us-east,note=oom_thrashing
+2026-05-15T19:05:10Z  node-02  cpu.used_percent    12.3   %     env=prod,cluster=cluster-prod-us-east,note=after_drain
+
+2026-05-15T18:00:00Z  node-02  disk.io_util        31.4   %     env=prod,cluster=cluster-prod-us-east,device=nvme0n1
+2026-05-15T18:32:44Z  node-02  disk.io_util        77.9   %     env=prod,cluster=cluster-prod-us-east,device=nvme0n1,note=swap_pressure
+2026-05-15T19:01:22Z  node-02  disk.io_util        98.2   %     env=prod,cluster=cluster-prod-us-east,device=nvme0n1,note=oom_swap
+
+# --- 2026-05-21 (auth anomaly day) ---
+
+2026-05-21T00:00:00Z  auth-lb-prod-01  net.requests_per_sec   210    rps   env=prod,service=auth-service
+2026-05-21T00:03:14Z  auth-lb-prod-01  net.requests_per_sec   3840   rps   env=prod,service=auth-service,alert=spike
+2026-05-21T00:03:47Z  auth-lb-prod-01  net.requests_per_sec   4120   rps   env=prod,service=auth-service,alert=spike
+2026-05-21T00:03:48Z  auth-lb-prod-01  net.requests_per_sec   205    rps   env=prod,service=auth-service,note=ip_blocked
+2026-05-21T00:48:22Z  auth-lb-prod-01  net.requests_per_sec   980    rps   env=prod,service=auth-service,note=credential_stuffing
+2026-05-21T00:48:38Z  auth-lb-prod-01  net.requests_per_sec   212    rps   env=prod,service=auth-service,note=blocked
+2026-05-21T01:00:00Z  auth-lb-prod-01  net.requests_per_sec   198    rps   env=prod,service=auth-service
+
+2026-05-21T00:03:14Z  auth-svc-prod-01  cpu.used_percent   78.4   %     env=prod,service=auth-service
+2026-05-21T00:03:47Z  auth-svc-prod-01  cpu.used_percent   91.2   %     env=prod,service=auth-service,alert=cpu_high
+2026-05-21T00:04:00Z  auth-svc-prod-01  cpu.used_percent   34.1   %     env=prod,service=auth-service,note=after_block
+
+# --- 2026-05-22 (payment-service latency spike) ---
+
+2026-05-22T14:00:00Z  db-primary-prod  db.active_connections   12   count   env=prod,db=payments-pg
+2026-05-22T14:05:00Z  db-primary-prod  db.active_connections   13   count   env=prod,db=payments-pg
+2026-05-22T14:10:00Z  db-primary-prod  db.active_connections   14   count   env=prod,db=payments-pg
+2026-05-22T14:15:00Z  db-primary-prod  db.active_connections   16   count   env=prod,db=payments-pg
+2026-05-22T14:17:00Z  db-primary-prod  db.active_connections   18   count   env=prod,db=payments-pg,alert=pool_high
+2026-05-22T14:20:00Z  db-primary-prod  db.active_connections   20   count   env=prod,db=payments-pg,alert=pool_exhausted
+2026-05-22T14:22:00Z  db-primary-prod  db.active_connections   20   count   env=prod,db=payments-pg,alert=pool_exhausted
+2026-05-22T14:24:00Z  db-primary-prod  db.active_connections   20   count   env=prod,db=payments-pg,alert=pool_exhausted
+2026-05-22T14:26:00Z  db-primary-prod  db.active_connections   20   count   env=prod,db=payments-pg,alert=pool_exhausted
+2026-05-22T14:27:40Z  pay-pod-7d4b9c   net.requests_per_sec   342  rps     env=prod,service=payment-service,note=campaign_spike
+2026-05-22T14:29:00Z  db-primary-prod  db.active_connections   38   count   env=prod,db=payments-pg,note=pool_resize_50
+2026-05-22T14:30:00Z  db-primary-prod  db.active_connections   32   count   env=prod,db=payments-pg
+2026-05-22T14:35:00Z  db-primary-prod  db.active_connections   28   count   env=prod,db=payments-pg
+2026-05-22T14:40:00Z  db-primary-prod  db.active_connections   22   count   env=prod,db=payments-pg
+2026-05-22T14:45:00Z  db-primary-prod  db.active_connections   18   count   env=prod,db=payments-pg
+2026-05-22T15:00:00Z  db-primary-prod  db.active_connections   15   count   env=prod,db=payments-pg
+
+2026-05-22T14:00:00Z  db-primary-prod  db.query_latency_p99_ms   22   ms   env=prod,db=payments-pg
+2026-05-22T14:17:00Z  db-primary-prod  db.query_latency_p99_ms   48   ms   env=prod,db=payments-pg
+2026-05-22T14:20:00Z  db-primary-prod  db.query_latency_p99_ms   320  ms   env=prod,db=payments-pg,alert=latency_high
+2026-05-22T14:25:00Z  db-primary-prod  db.query_latency_p99_ms   1840 ms   env=prod,db=payments-pg,alert=latency_critical
+2026-05-22T14:30:00Z  db-primary-prod  db.query_latency_p99_ms   890  ms   env=prod,db=payments-pg
+2026-05-22T14:35:00Z  db-primary-prod  db.query_latency_p99_ms   210  ms   env=prod,db=payments-pg
+2026-05-22T14:40:00Z  db-primary-prod  db.query_latency_p99_ms   38   ms   env=prod,db=payments-pg
+2026-05-22T14:45:00Z  db-primary-prod  db.query_latency_p99_ms   25   ms   env=prod,db=payments-pg
+2026-05-22T15:00:00Z  db-primary-prod  db.query_latency_p99_ms   21   ms   env=prod,db=payments-pg
+
+2026-05-22T14:00:00Z  pay-pod-7d4b9c   net.requests_per_sec    87   rps   env=prod,service=payment-service
+2026-05-22T14:20:00Z  pay-pod-7d4b9c   net.requests_per_sec   102   rps   env=prod,service=payment-service
+2026-05-22T14:27:40Z  pay-pod-7d4b9c   net.requests_per_sec   342   rps   env=prod,service=payment-service,note=campaign_SUMMER2026
+2026-05-22T14:30:00Z  pay-pod-7d4b9c   net.requests_per_sec   310   rps   env=prod,service=payment-service
+2026-05-22T14:35:00Z  pay-pod-7d4b9c   net.requests_per_sec   241   rps   env=prod,service=payment-service
+2026-05-22T14:45:00Z  pay-pod-7d4b9c   net.requests_per_sec    96   rps   env=prod,service=payment-service
+2026-05-22T15:00:00Z  pay-pod-7d4b9c   net.requests_per_sec    91   rps   env=prod,service=payment-service

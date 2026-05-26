@@ -1,0 +1,64 @@
+# Kubernetes event log — cluster: cluster-prod-us-east  (kubectl get events --all-namespaces --sort-by=.lastTimestamp)
+# NAMESPACE           NAME                                  KIND    REASON               MESSAGE
+# Format: timestamp  namespace  object  kind  reason  message
+
+2026-05-15T06:00:11Z  prod  node/node-04  Node  NodeHasSufficientMemory  Node node-04 status is now: NodeHasSufficientMemory
+2026-05-15T09:14:02Z  prod  pod/model-worker-5d8c6f-zxw9p  Pod  Pulled    Successfully pulled image "nvcr.io/nim/meta/llama-3.1-8b-instruct:latest" in 4.2s
+2026-05-15T09:14:08Z  prod  pod/model-worker-5d8c6f-zxw9p  Pod  Started   Started container model-worker
+
+2026-05-15T18:32:44Z  prod  node/node-02  Node  NodeMemoryPressure   Node node-02 status is now: NodeHasMemoryPressure (available: 512Mi, threshold: 1Gi)
+2026-05-15T18:32:51Z  prod  pod/embedding-svc-7b9d4e-kqr2s  Pod  Evicted   The node was low on resource: memory. Threshold quantity: 1Gi, available: 512Mi.
+2026-05-15T18:33:05Z  prod  pod/embedding-svc-7b9d4e-kqr2s  Pod  Killing   Stopping container embedding-svc
+2026-05-15T18:33:08Z  prod  replicaset/embedding-svc-7b9d4e  ReplicaSet  SuccessfulCreate  Created pod: embedding-svc-7b9d4e-p9m1n (rescheduled to node-04)
+2026-05-15T18:33:21Z  prod  pod/embedding-svc-7b9d4e-p9m1n  Pod  Scheduled  Successfully assigned prod/embedding-svc-7b9d4e-p9m1n to node-04
+2026-05-15T18:33:29Z  prod  pod/embedding-svc-7b9d4e-p9m1n  Pod  Pulled    Container image "nvcr.io/nim/nvidia/nv-embedqa-e5-v5:1.1.0" already present on machine
+2026-05-15T18:33:31Z  prod  pod/embedding-svc-7b9d4e-p9m1n  Pod  Started   Started container embedding-svc
+
+2026-05-15T19:01:17Z  prod  node/node-02  Node  NodeMemoryPressure   Node node-02 memory pressure worsening (available: 189Mi)
+2026-05-15T19:01:22Z  prod  pod/reranker-svc-3c7a1d-bvt4k  Pod  OOMKilled  Container reranker-svc exceeded memory limit 4Gi. OOMKilled.
+2026-05-15T19:01:25Z  prod  pod/reranker-svc-3c7a1d-bvt4k  Pod  BackOff   Back-off restarting failed container reranker-svc (restartCount=1)
+2026-05-15T19:01:44Z  prod  pod/reranker-svc-3c7a1d-bvt4k  Pod  OOMKilled  Container reranker-svc exceeded memory limit 4Gi. OOMKilled. (restartCount=2)
+2026-05-15T19:02:01Z  prod  pod/reranker-svc-3c7a1d-bvt4k  Pod  BackOff   Back-off restarting failed container reranker-svc (CrashLoopBackOff, restartCount=3)
+2026-05-15T19:02:15Z  prod  pod/vector-db-0  Pod  Evicted   The node was low on resource: memory. Threshold quantity: 1Gi, available: 189Mi.
+2026-05-15T19:02:18Z  prod  persistentvolumeclaim/vector-db-data-0  PVC  FailedMount   Unable to mount volumes for pod "vector-db-0": timeout expired waiting for volumes to attach/mount
+
+2026-05-15T19:05:03Z  prod  node/node-02  Node  Drain   Cordoning node-02 due to memory pressure — operator action
+2026-05-15T19:05:04Z  prod  node/node-02  Node  Cordon   Node node-02 has been marked as unschedulable
+2026-05-15T19:05:10Z  prod  pod/rag-server-6e4b2a-hmp7r  Pod  Evicted   Evicted from node-02 due to node drain
+2026-05-15T19:05:14Z  prod  pod/ingestor-8d3c5b-qlw1v  Pod  Evicted   Evicted from node-02 due to node drain
+2026-05-15T19:05:20Z  prod  pod/rag-server-6e4b2a-hmp7r  Pod  Scheduled  Rescheduled to node-03
+2026-05-15T19:05:24Z  prod  pod/ingestor-8d3c5b-qlw1v  Pod  Scheduled  Rescheduled to node-01
+2026-05-15T19:05:31Z  prod  pod/rag-server-6e4b2a-hmp7r  Pod  Started   Started container rag-server
+2026-05-15T19:05:38Z  prod  pod/ingestor-8d3c5b-qlw1v  Pod  Started   Started container ingestor
+
+2026-05-15T19:10:02Z  prod  pod/reranker-svc-3c7a1d-bvt4k  Pod  Killed    Terminated CrashLoopBackOff pod — operator intervention
+2026-05-15T19:10:05Z  prod  replicaset/reranker-svc-3c7a1d  ReplicaSet  SuccessfulCreate  Created pod: reranker-svc-3c7a1d-xzp9q (rescheduled to node-01 with memory limit raised to 8Gi)
+2026-05-15T19:10:19Z  prod  pod/reranker-svc-3c7a1d-xzp9q  Pod  Started   Started container reranker-svc
+
+2026-05-15T19:20:00Z  prod  node/node-02  Node  MemoryPressureResolved  Node node-02 memory reclaimed after evictions (available: 3.8Gi). Uncordoning.
+2026-05-15T19:20:02Z  prod  node/node-02  Node  Uncordon  Node node-02 marked schedulable again
+2026-05-15T19:25:10Z  prod  pod/vector-db-0  Pod  Scheduled  Rescheduled pod vector-db-0 back to node-02 after uncordon
+2026-05-15T19:25:44Z  prod  pod/vector-db-0  Pod  Started   Started container vector-db
+
+2026-05-16T00:05:22Z  prod  node/node-03  Node  NodeMemoryPressure   Node node-03 status is now: NodeHasMemoryPressure (available: 780Mi, threshold: 1Gi)
+2026-05-16T00:05:30Z  prod  pod/model-worker-5d8c6f-zxw9p  Pod  OOMKilled  Container model-worker exceeded memory limit 16Gi. OOMKilled. (restartCount=1)
+2026-05-16T00:05:35Z  prod  pod/model-worker-5d8c6f-zxw9p  Pod  BackOff   Back-off restarting failed container model-worker (restartCount=1)
+2026-05-16T00:08:44Z  prod  horizontalpodautoscaler/model-worker-hpa  HorizontalPodAutoscaler  DesiredReplicas  New size: 3; reason: memory resource utilization (percentage of request) above target
+2026-05-16T00:09:01Z  prod  pod/model-worker-5d8c6f-abcd1  Pod  Scheduled  Assigned to node-01
+2026-05-16T00:09:07Z  prod  pod/model-worker-5d8c6f-abcd1  Pod  Started   Started container model-worker
+2026-05-16T00:09:05Z  prod  pod/model-worker-5d8c6f-efgh2  Pod  Scheduled  Assigned to node-04
+2026-05-16T00:09:12Z  prod  pod/model-worker-5d8c6f-efgh2  Pod  Started   Started container model-worker
+2026-05-16T00:12:00Z  prod  node/node-03  Node  MemoryPressureResolved  Node node-03 memory stabilized after HPA scale-out (available: 2.1Gi)
+
+2026-05-16T00:15:33Z  prod  node/node-03  Node  NodeHasSufficientMemory  Node node-03 status is now: NodeHasSufficientMemory
+2026-05-16T06:00:00Z  prod  horizontalpodautoscaler/model-worker-hpa  HorizontalPodAutoscaler  DesiredReplicas  New size: 1; reason: scale-down after sustained low utilization
+
+# Incident summary recorded by SRE:
+# INC-20260515-001: Memory pressure cascade on cluster-prod-us-east
+#   Start:    2026-05-15T18:32Z
+#   End:      2026-05-16T00:15Z
+#   Root cause: reranker-svc memory limit (4Gi) too low for new 1B-parameter model variant loaded during 18:00 deployment.
+#               OOM cascade evicted vector-db-0 and other pods on node-02.
+#   Impact:   ~47 minutes of degraded retrieval (embedding + reranker unavailable), ~3 min RAG query errors during drain.
+#   Fix:      Raised reranker-svc memory limit to 8Gi. Added PodDisruptionBudget. Improved memory headroom alerting.
+#   Follow-up: Add memory limits review to deployment checklist (ticket ENG-8812).
