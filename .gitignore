@@ -9,6 +9,7 @@ dist/*
 
 # Docker Compose exclusions
 deploy/compose/volumes
+deploy/compose/secrets.env
 uploaded_files/
 **tmp-data**
 

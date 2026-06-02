@@ -36,6 +36,15 @@ if [[ -n "${1:-}" ]]; then
 # Priority 2: NGC_API_KEY already in environment
 elif [[ -n "${NGC_API_KEY:-}" ]]; then
     info "Using NGC_API_KEY from shell environment."
+# Priority 3: secrets.env file
+elif [[ -f "${COMPOSE_DIR}/secrets.env" ]]; then
+    # shellcheck source=/dev/null
+    set -a; source "${COMPOSE_DIR}/secrets.env"; set +a
+    if [[ -n "${NGC_API_KEY:-}" && "${NGC_API_KEY}" != nvapi-YOUR_KEY_HERE ]]; then
+        info "Using NGC_API_KEY from secrets.env."
+    else
+        unset NGC_API_KEY
+    fi
 fi
 
 # ── 2. Source env file ────────────────────────────────────────────────────────
