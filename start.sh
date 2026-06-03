@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # start.sh — Start the NVIDIA RAG Blueprint stack (NVIDIA-hosted models)
-# Usage:  ./start.sh [NGC_API_KEY]
+# Usage:  ./start.sh [--elastic] [NGC_API_KEY]
+#
+#   --elastic   Use Elasticsearch as the vector store (sources elastic.env)
+#               Default is Milvus.
 #
 # API key resolution order (first match wins):
 #   1. Passed as a command-line argument
@@ -9,6 +12,17 @@
 #   4. Interactive prompt
 
 set -euo pipefail
+
+# ── Parse flags ───────────────────────────────────────────────────────────────
+USE_ELASTIC=false
+POSITIONAL=()
+for arg in "$@"; do
+    case "$arg" in
+        --elastic) USE_ELASTIC=true ;;
+        *) POSITIONAL+=("$arg") ;;
+    esac
+done
+set -- "${POSITIONAL[@]+"${POSITIONAL[@]}"}"
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
@@ -48,10 +62,17 @@ elif [[ -f "${COMPOSE_DIR}/secrets.env" ]]; then
 fi
 
 # ── 2. Source env file ────────────────────────────────────────────────────────
-info "Sourcing ${COMPOSE_DIR}/nvdev.env ..."
-# shellcheck source=/dev/null
-source "${COMPOSE_DIR}/nvdev.env"
-success "Environment loaded. LLM model: ${APP_LLM_MODELNAME:-unset}"
+if [[ "${USE_ELASTIC}" == "true" ]]; then
+    info "Sourcing ${COMPOSE_DIR}/elastic.env (Elasticsearch mode) ..."
+    # shellcheck source=/dev/null
+    source "${COMPOSE_DIR}/elastic.env"
+    success "Environment loaded. Vector store: elasticsearch  LLM model: ${APP_LLM_MODELNAME:-unset}"
+else
+    info "Sourcing ${COMPOSE_DIR}/nvdev.env ..."
+    # shellcheck source=/dev/null
+    source "${COMPOSE_DIR}/nvdev.env"
+    success "Environment loaded. LLM model: ${APP_LLM_MODELNAME:-unset}"
+fi
 
 # Priority 3: NVIDIA_API_KEY was hardcoded in the env file — promote it to NGC_API_KEY
 if [[ -z "${NGC_API_KEY:-}" && -n "${NVIDIA_API_KEY:-}" ]]; then
@@ -106,9 +127,15 @@ wait_healthy() {
 
 # ── 4. Start vector database ──────────────────────────────────────────────────
 echo ""
-info "Starting vector database (Milvus + MinIO + etcd) ..."
-docker compose -f "${COMPOSE_DIR}/vectordb.yaml" up -d
-wait_healthy "Milvus" "http://localhost:9091/healthz" 30 10
+if [[ "${USE_ELASTIC}" == "true" ]]; then
+    info "Starting vector database (Elasticsearch + MinIO) ..."
+    docker compose -f "${COMPOSE_DIR}/vectordb.yaml" --profile elasticsearch up -d
+    wait_healthy "Elasticsearch" "http://localhost:9200/_cluster/health" 30 10
+else
+    info "Starting vector database (Milvus + MinIO + etcd) ..."
+    docker compose -f "${COMPOSE_DIR}/vectordb.yaml" up -d
+    wait_healthy "Milvus" "http://localhost:9091/healthz" 30 10
+fi
 
 # ── 5. Start ingestor ─────────────────────────────────────────────────────────
 echo ""
@@ -125,7 +152,7 @@ wait_healthy "RAG server" "http://localhost:8081/v1/health" 36 10
 # ── 7. Final status ───────────────────────────────────────────────────────────
 echo ""
 info "Container status:"
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "NAMES|rag|milvus|ingest|redis"
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "NAMES|rag|milvus|elastic|ingest|redis"
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"
