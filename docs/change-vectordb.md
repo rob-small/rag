@@ -46,19 +46,30 @@ The following are some important notes to keep in mind before you switch from Mi
 
 ## Docker Compose Configuration for Elasticsearch Vector Database
 
-Use the following steps to configure Elasticsearch as your vector database in Docker.
+### Quick start
 
-1. Start the Elasticsearch container.
+The easiest way to bring up the full stack with Elasticsearch is to use `start.sh --elastic` from the repo root. It sources `deploy/compose/elastic.env`, starts the Elasticsearch profile, and waits for every service to become healthy:
+
+```bash
+./start.sh --elastic
+```
+
+`elastic.env` inherits all NVIDIA API Catalog model settings from `nvdev.env` and overrides only the vector store variables, so no other configuration is needed.
+
+### Manual steps
+
+Use the following steps if you need to start individual services separately.
+
+1. Source the Elasticsearch env file to set all required variables.
+
+   ```bash
+   source deploy/compose/elastic.env
+   ```
+
+2. Start the Elasticsearch container.
 
    ```bash
    docker compose -f deploy/compose/vectordb.yaml --profile elasticsearch up -d
-   ```
-
-2. Set the vector database configuration.
-
-   ```bash
-   export APP_VECTORSTORE_URL="http://elasticsearch:9200"
-   export APP_VECTORSTORE_NAME="elasticsearch"
    ```
 
 3. Relaunch the RAG and ingestion services.

@@ -23,6 +23,13 @@ To generate an API key, use the following procedure.
     export NGC_API_KEY="<your-ngc-api-key>"
     ```
 
+    Alternatively, save it to `deploy/compose/secrets.env` so it persists across shell sessions and is picked up automatically by `start.sh`:
+
+    ```bash
+    # deploy/compose/secrets.env  (never commit this file — it is in .gitignore)
+    NGC_API_KEY=nvapi-...
+    ```
+
 
 
 ## API Key Expiration

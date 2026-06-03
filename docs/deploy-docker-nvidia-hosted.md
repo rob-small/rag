@@ -50,7 +50,36 @@ Initial deployment typically takes 5-10 minutes as container images are pulled a
 
 ## Start services using NVIDIA-hosted models
 
-Use the following procedure to start all containers needed for this blueprint.
+### Quick start (recommended)
+
+`start.sh` is a single-command launcher that handles authentication, sources the correct env file, starts all services in order, and waits for each one to become healthy before moving on.
+
+**Default (Milvus vector store):**
+
+```bash
+./start.sh
+```
+
+**Elasticsearch vector store:**
+
+```bash
+./start.sh --elastic
+```
+
+The script resolves your API key automatically using the following priority order:
+
+1. Command-line argument: `./start.sh nvapi-...`
+2. `NGC_API_KEY` already exported in the shell
+3. `deploy/compose/secrets.env` file (recommended — see [Get an API Key](api-key.md))
+4. Interactive prompt
+
+:::{note}
+After switching from Milvus to Elasticsearch (or vice versa), you must re-upload your documents. Data is not migrated between vector stores.
+:::
+
+### Manual start
+
+Use the following procedure if you need fine-grained control over individual services.
 
 1. Open `deploy/compose/.env` and uncomment the section `Endpoints for using cloud NIMs`. Then set the environment variables by running the following code.
 
@@ -62,7 +91,12 @@ Use the following procedure to start all containers needed for this blueprint.
 2. Start the vector db containers from the repo root.
 
    ```bash
+   # Milvus (default)
    docker compose -f deploy/compose/vectordb.yaml up -d
+
+   # Elasticsearch
+   source deploy/compose/elastic.env
+   docker compose -f deploy/compose/vectordb.yaml --profile elasticsearch up -d
    ```
 
 
