@@ -950,7 +950,7 @@ nv-ingest:
     MINIO_ACCESS_KEY: "minioadmin"
     MINIO_SECRET_KEY: "minioadmin"
     MILVUS_ENDPOINT: "http://milvus:19530"
-    OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
     MODEL_PREDOWNLOAD_PATH: "/workspace/models/"
     INSTALL_AUDIO_EXTRACTION_DEPS: "true"
     COMPONENTS_TO_READY_CHECK: "ALL"
