@@ -102,6 +102,7 @@ promptConfig:
 envVars:
   EXAMPLE_PATH: "./nvidia_rag/rag_server"
   PROMPT_CONFIG_FILE: "/prompt.yaml"
+  SYSTEM_PROMPT_FILE: "/system-prompt.txt"
   PROMETHEUS_MULTIPROC_DIR: "/tmp-data/prom_data"
 
   ##===Authentication===

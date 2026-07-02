@@ -93,6 +93,7 @@ from nvidia_rag.utils.llm import (
     get_llm,
     get_prompts,
     get_streaming_filter_think_parser_async,
+    get_system_prompt,
 )
 from nvidia_rag.utils.observability.otel_metrics import OtelMetrics
 from nvidia_rag.utils.reranker import get_ranking_model
@@ -1364,6 +1365,14 @@ class NvidiaRAG:
 
         # Get the base template
         system_prompt = self.prompts.get(template_key, {}).get("system", "")
+        # Prepend the user-configurable global system prompt (chat/RAG only)
+        custom_system_prompt = get_system_prompt()
+        if custom_system_prompt:
+            system_prompt = (
+                f"{custom_system_prompt}\n{system_prompt}"
+                if system_prompt
+                else custom_system_prompt
+            )
         # Support both "human" and "user" keys with fallback
         template_dict = self.prompts.get(template_key, {})
         user_prompt = template_dict.get("human", template_dict.get("user", ""))

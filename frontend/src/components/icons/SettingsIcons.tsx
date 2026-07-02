@@ -82,6 +82,12 @@ export const AdvancedIcon: React.FC<IconProps> = ({ className, size }) => (
   </IconBase>
 );
 
+export const SystemPromptIcon: React.FC<IconProps> = ({ className, size }) => (
+  <IconBase className={className} size={size}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+  </IconBase>
+);
+
 // Backward compatibility: export the old inline function style as well
 /* eslint-disable react-refresh/only-export-components */
 export const ICON_rag = () => <RagIcon />;
@@ -89,3 +95,4 @@ export const ICON_features = () => <FeaturesIcon />;
 export const ICON_models = () => <ModelsIcon />;
 export const ICON_endpoints = () => <EndpointsIcon />;
 export const ICON_advanced = () => <AdvancedIcon />;
+export const ICON_systemPrompt = () => <SystemPromptIcon />;

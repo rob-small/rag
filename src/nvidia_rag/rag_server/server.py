@@ -57,6 +57,7 @@ from nvidia_rag.rag_server.response_generator import (
     error_response_generator,
 )
 from nvidia_rag.utils.configuration import NvidiaRAGConfig
+from nvidia_rag.utils.llm import get_system_prompt, set_system_prompt
 from nvidia_rag.utils.health_models import (
     DatabaseHealthInfo,
     NIMServiceHealthInfo,
@@ -868,6 +869,23 @@ class ConfigurationResponse(BaseModel):
     endpoints: EndpointsDefaults = Field(description="Default endpoint URLs")
 
 
+class SystemPromptRequest(BaseModel):
+    """Request body for updating the global system prompt."""
+
+    system_prompt: str = Field(
+        description="Instructions prepended to every chat and RAG model call to steer assistant behavior.",
+        examples=["You are a concise, formal assistant for Acme Corp support."],
+    )
+
+
+class SystemPromptResponse(BaseModel):
+    """Response containing the current global system prompt."""
+
+    system_prompt: str = Field(
+        description="The currently configured global system prompt."
+    )
+
+
 # OpenAI-compatible vector store search models
 
 
@@ -1298,6 +1316,71 @@ async def get_configuration():
         logger.error(f"Error fetching configuration: {str(e)}")
         return JSONResponse(
             content={"detail": f"Error fetching configuration: {str(e)}"},
+            status_code=500,
+        )
+
+
+@app.get(
+    "/system-prompt",
+    response_model=SystemPromptResponse,
+    tags=["Health APIs"],
+    responses={
+        500: {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Internal server error occurred"}
+                }
+            },
+        }
+    },
+)
+async def get_system_prompt_config():
+    """
+    Get the global system prompt.
+
+    Returns the custom system prompt currently prepended to the system message
+    of the chat and RAG generation pipelines. Empty string if none is set.
+    """
+    try:
+        return SystemPromptResponse(system_prompt=get_system_prompt())
+    except Exception as e:
+        logger.error(f"Error fetching system prompt: {str(e)}")
+        return JSONResponse(
+            content={"detail": f"Error fetching system prompt: {str(e)}"},
+            status_code=500,
+        )
+
+
+@app.put(
+    "/system-prompt",
+    response_model=SystemPromptResponse,
+    tags=["Health APIs"],
+    responses={
+        500: {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Internal server error occurred"}
+                }
+            },
+        }
+    },
+)
+async def update_system_prompt_config(request: SystemPromptRequest):
+    """
+    Update the global system prompt.
+
+    Writes the provided text to disk. Takes effect on the very next chat or
+    RAG generation request; no server restart is required.
+    """
+    try:
+        set_system_prompt(request.system_prompt)
+        return SystemPromptResponse(system_prompt=request.system_prompt)
+    except Exception as e:
+        logger.error(f"Error updating system prompt: {str(e)}")
+        return JSONResponse(
+            content={"detail": f"Error updating system prompt: {str(e)}"},
             status_code=500,
         )
 
@@ -2234,6 +2317,20 @@ v1_router.add_api_route(
     get_configuration,
     methods=["GET"],
     response_model=ConfigurationResponse,
+    tags=["Health APIs"],
+)
+v1_router.add_api_route(
+    "/system-prompt",
+    get_system_prompt_config,
+    methods=["GET"],
+    response_model=SystemPromptResponse,
+    tags=["Health APIs"],
+)
+v1_router.add_api_route(
+    "/system-prompt",
+    update_system_prompt_config,
+    methods=["PUT"],
+    response_model=SystemPromptResponse,
     tags=["Health APIs"],
 )
 v1_router.add_api_route(

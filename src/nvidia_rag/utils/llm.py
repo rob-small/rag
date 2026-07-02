@@ -110,6 +110,39 @@ def get_prompts(source: str | dict | None = None) -> dict:
     return config
 
 
+def get_system_prompt() -> str:
+    """Retrieves the global system prompt from disk, re-reading on every call.
+
+    No caching is applied here on purpose: the rag-server runs multiple worker
+    processes, and reading fresh from the shared file lets an edit made through
+    the UI take effect on the very next request across all workers, without a
+    restart.
+    """
+    system_prompt_file = os.environ.get("SYSTEM_PROMPT_FILE", "/system-prompt.txt")
+    path = Path(system_prompt_file)
+
+    if not path.is_file():
+        # Fall back to the packaged default next to prompt.yaml (library mode /
+        # running from source without the bind-mounted file).
+        default_path = Path(
+            os.environ.get("EXAMPLE_PATH", os.path.dirname(__file__))
+        ) / ".." / "rag_server" / "system_prompt.txt"
+        path = default_path if default_path.is_file() else path
+
+    if not path.is_file():
+        return ""
+
+    with open(path, encoding="utf-8") as file:
+        return file.read().strip()
+
+
+def set_system_prompt(system_prompt: str) -> None:
+    """Writes the global system prompt to disk so it can be hot-reloaded."""
+    system_prompt_file = os.environ.get("SYSTEM_PROMPT_FILE", "/system-prompt.txt")
+    with open(system_prompt_file, "w", encoding="utf-8") as file:
+        file.write(system_prompt)
+
+
 def _is_nvidia_endpoint(url: str | None) -> bool:
     """Detect if endpoint is NVIDIA-based using URL patterns."""
     if not url:

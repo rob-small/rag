@@ -19,12 +19,13 @@ import { useSettingsSections } from "../hooks/useSettingsSections";
 import { useFeatureWarning } from "../hooks/useFeatureWarning";
 import { SettingsContent } from "../components/settings/SettingsContent";
 import { FeatureWarningModal } from "../components/modals/FeatureWarningModal";
-import { 
-  ICON_rag, 
-  ICON_features, 
-  ICON_models, 
-  ICON_endpoints, 
-  ICON_advanced 
+import {
+  ICON_rag,
+  ICON_features,
+  ICON_models,
+  ICON_endpoints,
+  ICON_advanced,
+  ICON_systemPrompt
 } from "../components/icons";
 
 /**
@@ -111,6 +112,21 @@ export default function SettingsPage() {
           onClick: (e: React.MouseEvent) => {
             e.preventDefault();
             setSection('advanced');
+          }
+        }
+      }
+    },
+    {
+      id: 'systemPrompt',
+      slotLabel: 'System Prompt',
+      slotIcon: <ICON_systemPrompt />,
+      active: activeSection === 'systemPrompt',
+      href: '#systemPrompt',
+      attributes: {
+        VerticalNavLink: {
+          onClick: (e: React.MouseEvent) => {
+            e.preventDefault();
+            setSection('systemPrompt');
           }
         }
       }

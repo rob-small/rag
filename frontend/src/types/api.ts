@@ -233,3 +233,10 @@ export interface ConfigurationResponse {
   models: ModelsDefaults;
   endpoints: EndpointsDefaults;
 }
+
+/**
+ * The global system prompt applied to chat and RAG generation.
+ */
+export interface SystemPromptResponse {
+  system_prompt: string;
+}

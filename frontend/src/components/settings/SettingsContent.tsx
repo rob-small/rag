@@ -20,12 +20,14 @@ import { FeatureTogglesSection } from './FeatureTogglesSection';
 import { ModelsSection } from './ModelsSection';
 import { EndpointsSection } from './EndpointsSection';
 import { AdvancedSection } from './AdvancedSection';
-import { 
-  RagIcon, 
-  FeaturesIcon, 
-  ModelsIcon, 
-  EndpointsIcon, 
-  AdvancedIcon 
+import { SystemPromptSection } from './SystemPromptSection';
+import {
+  RagIcon,
+  FeaturesIcon,
+  ModelsIcon,
+  EndpointsIcon,
+  AdvancedIcon,
+  SystemPromptIcon
 } from '../icons';
 
 interface SettingsContentProps {
@@ -120,6 +122,23 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({
                   Advanced configuration options and system settings.
               </Text>
               <AdvancedSection />
+            </Stack>
+          </Panel>
+        );
+
+      case 'systemPrompt':
+        return (
+          <Panel
+            slotHeading="System Prompt"
+            slotIcon={<SystemPromptIcon className="w-6 h-6" />}
+            elevation="mid"
+            density="standard"
+          >
+            <Stack gap="4">
+              <Text kind="body/regular/sm">
+                Set global instructions that steer the assistant's behavior across chat and RAG responses.
+              </Text>
+              <SystemPromptSection />
             </Stack>
           </Panel>
         );

@@ -92,6 +92,28 @@ The `prompt.yaml` file contains a set of prompt templates used throughout the RA
 
 ---
 
+## Global System Prompt
+
+In addition to the purpose-specific templates in `prompt.yaml`, you can configure a single **global system prompt** that is prepended to the system message of the `chat_template` and `rag_template` pipelines only (the user-facing chat and RAG generation paths). It does not affect internal utility prompts such as query rewriting, reflection, filter expression generation, or summarization, since those rely on rigid output formats that free-text instructions could break.
+
+Unlike `prompt.yaml`, the global system prompt:
+- Lives in a plain text file (`SYSTEM_PROMPT_FILE`, default `/system-prompt.txt`).
+- Is **hot-reloaded**: it's read from disk on every request, so an edit takes effect on the very next chat or RAG request — no server restart required.
+- Can be edited directly from the application's Settings UI (System Prompt section), which calls `GET`/`PUT /v1/system-prompt` under the hood.
+
+### Editing via environment variable
+
+```bash
+export SYSTEM_PROMPT_FILE=/home/user/my_system_prompt.txt
+echo "You are a concise, formal assistant for Acme Corp support." > /home/user/my_system_prompt.txt
+```
+
+Then mount that file in place of the default in `deploy/compose/docker-compose-rag-server.yaml` (or point `SYSTEM_PROMPT_FILE` at it) and restart, the same way `PROMPT_CONFIG_FILE` is wired up. Once running, subsequent edits to the file (or via the UI) take effect immediately without restarting.
+
+### Helm deployments
+
+The Helm chart sets `SYSTEM_PROMPT_FILE: "/system-prompt.txt"` by default, but — unlike `prompt.yaml` — this path is **not** backed by a ConfigMap volume mount, because ConfigMap-backed volumes are read-only in Kubernetes and would prevent the UI from saving edits. As a result, writes go to the pod's ephemeral container filesystem: hot-reload works for the lifetime of a running pod, but edits are lost on pod restart or rescheduling. If you need edits to persist across restarts in a Helm deployment, mount a writable, persistent volume at `/system-prompt.txt` (or point `SYSTEM_PROMPT_FILE` at a path backed by one).
+
 ## Overriding Existing Templates in `prompt.yaml`
 
 You can override any template defined in the packaged `prompt.yaml` by providing a custom prompt file and setting the `PROMPT_CONFIG_FILE` environment variable. When the service starts, it loads the default `prompt.yaml` (packaged in the container) and then merges it with your custom prompt file. If a key exists in both files, the value from your custom file will override the default.

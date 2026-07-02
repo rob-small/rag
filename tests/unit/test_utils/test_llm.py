@@ -31,6 +31,8 @@ from nvidia_rag.utils.llm import (
     get_llm,
     get_prompts,
     get_streaming_filter_think_parser,
+    get_system_prompt,
+    set_system_prompt,
     streaming_filter_think,
 )
 
@@ -203,6 +205,71 @@ class TestGetPrompts:
             # Source dict should be used, not env var
             assert "source_key" in result
             assert result["source_key"] == "source_value"
+
+
+class TestGetSystemPrompt:
+    """Test cases for get_system_prompt and set_system_prompt functions."""
+
+    def test_get_system_prompt_no_file_found(self):
+        """Test that an empty string is returned when no file exists anywhere."""
+        with patch.dict(
+            os.environ,
+            {"SYSTEM_PROMPT_FILE": "/nonexistent/system-prompt.txt"},
+        ):
+            with patch("pathlib.Path.is_file", return_value=False):
+                assert get_system_prompt() == ""
+
+    def test_get_system_prompt_from_configured_file(self):
+        """Test reading the system prompt from the configured SYSTEM_PROMPT_FILE."""
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False
+        ) as f:
+            f.write("  You are a pirate assistant.  \n")
+            temp_file_path = f.name
+
+        try:
+            with patch.dict(os.environ, {"SYSTEM_PROMPT_FILE": temp_file_path}):
+                assert get_system_prompt() == "You are a pirate assistant."
+        finally:
+            os.unlink(temp_file_path)
+
+    def test_get_system_prompt_falls_back_to_packaged_default(self):
+        """Test falling back to the packaged default when SYSTEM_PROMPT_FILE is missing."""
+        with patch.dict(
+            os.environ, {"SYSTEM_PROMPT_FILE": "/nonexistent/system-prompt.txt"}
+        ):
+            # The packaged default (src/nvidia_rag/rag_server/system_prompt.txt) is empty.
+            assert get_system_prompt() == ""
+
+    def test_set_system_prompt_writes_to_configured_file(self):
+        """Test that set_system_prompt writes content to SYSTEM_PROMPT_FILE."""
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False
+        ) as f:
+            temp_file_path = f.name
+
+        try:
+            with patch.dict(os.environ, {"SYSTEM_PROMPT_FILE": temp_file_path}):
+                set_system_prompt("Always answer in Spanish.")
+                assert get_system_prompt() == "Always answer in Spanish."
+        finally:
+            os.unlink(temp_file_path)
+
+    def test_set_then_get_round_trip(self):
+        """Test that a write is immediately visible to a subsequent read (hot-reload)."""
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False
+        ) as f:
+            temp_file_path = f.name
+
+        try:
+            with patch.dict(os.environ, {"SYSTEM_PROMPT_FILE": temp_file_path}):
+                set_system_prompt("First version")
+                assert get_system_prompt() == "First version"
+                set_system_prompt("Second version")
+                assert get_system_prompt() == "Second version"
+        finally:
+            os.unlink(temp_file_path)
 
 
 class TestGetLLM:
