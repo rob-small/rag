@@ -100,6 +100,18 @@ Unlike `prompt.yaml`, the global system prompt:
 - Lives in a plain text file (`SYSTEM_PROMPT_FILE`, default `/system-prompt.txt`).
 - Is **hot-reloaded**: it's read from disk on every request, so an edit takes effect on the very next chat or RAG request — no server restart required.
 - Can be edited directly from the application's Settings UI (System Prompt section), which calls `GET`/`PUT /v1/system-prompt` under the hood.
+- Can be switched off without losing the text, using the **System prompt** toggle above the chat input on the main screen (or the matching switch in Settings). While off, the prompt is kept on disk but not prepended to any request.
+
+### Turning the system prompt on and off
+
+The on/off state lives in its own plain text file (`SYSTEM_PROMPT_ENABLED_FILE`, default `/system-prompt-enabled.txt`) containing `true` or `false`, and is hot-reloaded on every request just like the prompt text. A missing or unreadable file counts as enabled, so deployments that predate this toggle are unaffected. The state is global to the server, not per browser: switching it off disables the system prompt for every user of that deployment.
+
+```bash
+# equivalent to flipping the toggle in the UI
+curl -X PUT localhost:8081/v1/system-prompt \
+  -H 'Content-Type: application/json' \
+  -d '{"enabled": false}'
+```
 
 ### Editing via environment variable
 
@@ -112,7 +124,7 @@ Then mount that file in place of the default in `deploy/compose/docker-compose-r
 
 ### Helm deployments
 
-The Helm chart sets `SYSTEM_PROMPT_FILE: "/system-prompt.txt"` by default, but — unlike `prompt.yaml` — this path is **not** backed by a ConfigMap volume mount, because ConfigMap-backed volumes are read-only in Kubernetes and would prevent the UI from saving edits. As a result, writes go to the pod's ephemeral container filesystem: hot-reload works for the lifetime of a running pod, but edits are lost on pod restart or rescheduling. If you need edits to persist across restarts in a Helm deployment, mount a writable, persistent volume at `/system-prompt.txt` (or point `SYSTEM_PROMPT_FILE` at a path backed by one).
+The Helm chart sets `SYSTEM_PROMPT_FILE: "/system-prompt.txt"` and `SYSTEM_PROMPT_ENABLED_FILE: "/system-prompt-enabled.txt"` by default, but — unlike `prompt.yaml` — this path is **not** backed by a ConfigMap volume mount, because ConfigMap-backed volumes are read-only in Kubernetes and would prevent the UI from saving edits. As a result, writes go to the pod's ephemeral container filesystem: hot-reload works for the lifetime of a running pod, but edits are lost on pod restart or rescheduling. If you need edits to persist across restarts in a Helm deployment, mount a writable, persistent volume at `/system-prompt.txt` (or point `SYSTEM_PROMPT_FILE` at a path backed by one). The same applies to the on/off state file: a pod restart resets the toggle back to enabled unless its path is persistent.
 
 ## Overriding Existing Templates in `prompt.yaml`
 

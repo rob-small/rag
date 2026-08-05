@@ -18,6 +18,7 @@ import { useChatStore } from "../../store/useChatStore";
 import { useCollectionsStore } from "../../store/useCollectionsStore";
 import { CollectionChips } from "../collections/CollectionChips";
 import { MessageInputContainer } from "./MessageInputContainer";
+import { SystemPromptToggle } from "./SystemPromptToggle";
 import SimpleFilterBar from "../filtering/SimpleFilterBar";
 import { Flex, Banner, Block } from "@kui/react";
 
@@ -26,6 +27,7 @@ export { CollectionChips } from "../collections/CollectionChips";
 export { MessageTextarea } from "./MessageTextarea";
 export { MessageActions } from "./MessageActions";
 export { MessageInputContainer } from "./MessageInputContainer";
+export { SystemPromptToggle } from "./SystemPromptToggle";
 
 export default function MessageInput() {
   const { filters, setFilters } = useChatStore();
@@ -46,6 +48,7 @@ export default function MessageInput() {
             </Banner>
           </Block>
         )}
+        <SystemPromptToggle />
         <MessageInputContainer />
       </>
     </Flex>

@@ -17,6 +17,8 @@ services:
       - ../../src/nvidia_rag/rag_server/prompt.yaml:/prompt.yaml
       # Mount the global system prompt file to the container (editable at runtime via the UI)
       - ../../src/nvidia_rag/rag_server/system_prompt.txt:/system-prompt.txt
+      # Mount the system prompt on/off state file (toggled at runtime from the UI)
+      - ../../src/nvidia_rag/rag_server/system_prompt_enabled.txt:/system-prompt-enabled.txt
     # Common customizations to the pipeline can be controlled using env variables
     environment:
       # Path to example directory relative to root
@@ -27,6 +29,10 @@ services:
 
       # Absolute path to the global system prompt file, editable at runtime from the UI
       SYSTEM_PROMPT_FILE: ${SYSTEM_PROMPT_FILE:-/system-prompt.txt}
+
+      # Absolute path to the file holding whether the system prompt is applied ("true"/"false"),
+      # toggled at runtime from the UI. Missing file means enabled.
+      SYSTEM_PROMPT_ENABLED_FILE: ${SYSTEM_PROMPT_ENABLED_FILE:-/system-prompt-enabled.txt}
 
       ##===MINIO specific configurations which is used to store the multimodal base64 content===
       MINIO_ENDPOINT: "minio:9010"

@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import { useCallback, useEffect, useState } from "react";
-import { FormField, TextArea, Button, Text } from "@kui/react";
+import { FormField, TextArea, Button, Text, Switch, Flex } from "@kui/react";
 import { useSystemPrompt, useUpdateSystemPrompt } from "../../api/useSystemPromptApi";
 import { useToastStore } from "../../store/useToastStore";
 
@@ -48,20 +48,52 @@ export const SystemPromptSection = () => {
   };
 
   const handleSave = useCallback(() => {
-    updateSystemPrompt(draft, {
-      onSuccess: () => showToast("System prompt updated", "success"),
-      onError: (err) =>
-        showToast(err instanceof Error ? err.message : "Failed to update system prompt", "error"),
-    });
+    updateSystemPrompt(
+      { system_prompt: draft },
+      {
+        onSuccess: () => showToast("System prompt updated", "success"),
+        onError: (err) =>
+          showToast(err instanceof Error ? err.message : "Failed to update system prompt", "error"),
+      }
+    );
   }, [draft, updateSystemPrompt, showToast]);
 
+  const handleToggleEnabled = useCallback(
+    (enabled: boolean) => {
+      updateSystemPrompt(
+        { enabled },
+        {
+          onSuccess: () =>
+            showToast(enabled ? "System prompt enabled" : "System prompt disabled", "success"),
+          onError: (err) =>
+            showToast(err instanceof Error ? err.message : "Failed to update system prompt", "error"),
+        }
+      );
+    },
+    [updateSystemPrompt, showToast]
+  );
+
   const isDirty = data !== undefined && draft !== data.system_prompt;
+  const isEnabled = data?.enabled ?? false;
 
   return (
     <FormField
       slotLabel="System Prompt"
       slotHelp="Instructions prepended to every chat and RAG response to steer the assistant's behavior, tone, and persona. Applies to the next request immediately after saving; no restart required."
     >
+      <Flex align="center" gap="density-sm" style={{ marginBottom: "var(--spacing-density-sm)" }}>
+        <Switch
+          checked={isEnabled}
+          onCheckedChange={handleToggleEnabled}
+          disabled={isLoading || isPending}
+          aria-label="Use system prompt"
+        />
+        <Text kind="body/regular/sm" style={{ color: "var(--text-color-subtle)" }}>
+          {isEnabled
+            ? "Applied to chat and RAG responses"
+            : "Turned off — the text below is saved but not sent"}
+        </Text>
+      </Flex>
       <TextArea
         placeholder="e.g. You are a concise, formal assistant for Acme Corp support."
         rows={8}

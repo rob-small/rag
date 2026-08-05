@@ -110,6 +110,27 @@ def get_prompts(source: str | dict | None = None) -> dict:
     return config
 
 
+def _resolve_system_prompt_path(
+    env_var: str, default_path: str, packaged_filename: str
+) -> Path:
+    """Resolve a system prompt state file, falling back to the packaged default.
+
+    The packaged fallback (next to prompt.yaml) covers library mode and running
+    from source, where the deployment's bind-mounted file does not exist.
+    """
+    path = Path(os.environ.get(env_var, default_path))
+    if path.is_file():
+        return path
+
+    packaged_path = (
+        Path(os.environ.get("EXAMPLE_PATH", os.path.dirname(__file__)))
+        / ".."
+        / "rag_server"
+        / packaged_filename
+    )
+    return packaged_path if packaged_path.is_file() else path
+
+
 def get_system_prompt() -> str:
     """Retrieves the global system prompt from disk, re-reading on every call.
 
@@ -118,16 +139,9 @@ def get_system_prompt() -> str:
     the UI take effect on the very next request across all workers, without a
     restart.
     """
-    system_prompt_file = os.environ.get("SYSTEM_PROMPT_FILE", "/system-prompt.txt")
-    path = Path(system_prompt_file)
-
-    if not path.is_file():
-        # Fall back to the packaged default next to prompt.yaml (library mode /
-        # running from source without the bind-mounted file).
-        default_path = Path(
-            os.environ.get("EXAMPLE_PATH", os.path.dirname(__file__))
-        ) / ".." / "rag_server" / "system_prompt.txt"
-        path = default_path if default_path.is_file() else path
+    path = _resolve_system_prompt_path(
+        "SYSTEM_PROMPT_FILE", "/system-prompt.txt", "system_prompt.txt"
+    )
 
     if not path.is_file():
         return ""
@@ -141,6 +155,41 @@ def set_system_prompt(system_prompt: str) -> None:
     system_prompt_file = os.environ.get("SYSTEM_PROMPT_FILE", "/system-prompt.txt")
     with open(system_prompt_file, "w", encoding="utf-8") as file:
         file.write(system_prompt)
+
+
+# Values that turn the system prompt off; anything else (including an empty or
+# missing file) leaves it on, so deployments that predate the toggle are unaffected.
+_SYSTEM_PROMPT_DISABLED_VALUES = frozenset({"false", "0", "off", "no"})
+
+
+def is_system_prompt_enabled() -> bool:
+    """Reports whether the global system prompt is applied to chat and RAG calls.
+
+    Read fresh from disk on every call for the same reason as
+    :func:`get_system_prompt`: a toggle made through the UI must take effect on
+    the very next request across all uvicorn workers, without a restart.
+    Defaults to enabled when the state file is absent.
+    """
+    path = _resolve_system_prompt_path(
+        "SYSTEM_PROMPT_ENABLED_FILE",
+        "/system-prompt-enabled.txt",
+        "system_prompt_enabled.txt",
+    )
+
+    if not path.is_file():
+        return True
+
+    with open(path, encoding="utf-8") as file:
+        return file.read().strip().lower() not in _SYSTEM_PROMPT_DISABLED_VALUES
+
+
+def set_system_prompt_enabled(enabled: bool) -> None:
+    """Writes the system prompt enabled state to disk so it can be hot-reloaded."""
+    enabled_file = os.environ.get(
+        "SYSTEM_PROMPT_ENABLED_FILE", "/system-prompt-enabled.txt"
+    )
+    with open(enabled_file, "w", encoding="utf-8") as file:
+        file.write("true" if enabled else "false")
 
 
 def _is_nvidia_endpoint(url: str | None) -> bool:

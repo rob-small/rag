@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { SystemPromptResponse } from "../types/api";
+import type { SystemPromptResponse, SystemPromptUpdate } from "../types/api";
 
 const SYSTEM_PROMPT_QUERY_KEY = ["system-prompt"];
 
@@ -43,25 +43,28 @@ export function useSystemPrompt() {
 /**
  * Custom hook to update the global system prompt on the RAG server.
  *
- * The update takes effect on the very next chat/RAG request; no restart is needed.
+ * Accepts a partial update, so the prompt text and whether it is applied can be
+ * changed independently. The update takes effect on the very next chat/RAG
+ * request; no restart is needed.
  *
  * @returns A React Query mutation object for updating the system prompt
  *
  * @example
  * ```tsx
  * const { mutate: updateSystemPrompt, isPending } = useUpdateSystemPrompt();
- * updateSystemPrompt("You are a concise, formal assistant.");
+ * updateSystemPrompt({ system_prompt: "You are a concise, formal assistant." });
+ * updateSystemPrompt({ enabled: false });
  * ```
  */
 export function useUpdateSystemPrompt() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (systemPrompt: string) => {
+    mutationFn: async (update: SystemPromptUpdate) => {
       const res = await fetch("/api/system-prompt", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ system_prompt: systemPrompt }),
+        body: JSON.stringify(update),
       });
       if (!res.ok) {
         let errorMessage = "Failed to update system prompt";

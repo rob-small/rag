@@ -32,7 +32,9 @@ from nvidia_rag.utils.llm import (
     get_prompts,
     get_streaming_filter_think_parser,
     get_system_prompt,
+    is_system_prompt_enabled,
     set_system_prompt,
+    set_system_prompt_enabled,
     streaming_filter_think,
 )
 
@@ -270,6 +272,83 @@ class TestGetSystemPrompt:
                 assert get_system_prompt() == "Second version"
         finally:
             os.unlink(temp_file_path)
+
+
+class TestSystemPromptEnabled:
+    """Test cases for is_system_prompt_enabled and set_system_prompt_enabled."""
+
+    def test_enabled_by_default_when_no_file_found(self):
+        """Test that a missing state file leaves the system prompt enabled."""
+        with patch.dict(
+            os.environ,
+            {"SYSTEM_PROMPT_ENABLED_FILE": "/nonexistent/system-prompt-enabled.txt"},
+        ):
+            with patch("pathlib.Path.is_file", return_value=False):
+                assert is_system_prompt_enabled() is True
+
+    @pytest.mark.parametrize(
+        "content,expected",
+        [
+            ("true", True),
+            ("True\n", True),
+            ("", True),
+            ("anything else", True),
+            ("false", False),
+            ("  FALSE  \n", False),
+            ("0", False),
+            ("off", False),
+            ("no", False),
+        ],
+    )
+    def test_reads_state_from_configured_file(self, content, expected):
+        """Test that only explicit off values disable the system prompt."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            temp_file_path = f.name
+
+        try:
+            with patch.dict(os.environ, {"SYSTEM_PROMPT_ENABLED_FILE": temp_file_path}):
+                assert is_system_prompt_enabled() is expected
+        finally:
+            os.unlink(temp_file_path)
+
+    def test_set_then_get_round_trip(self):
+        """Test that a toggle is immediately visible to a subsequent read."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            temp_file_path = f.name
+
+        try:
+            with patch.dict(os.environ, {"SYSTEM_PROMPT_ENABLED_FILE": temp_file_path}):
+                set_system_prompt_enabled(False)
+                assert is_system_prompt_enabled() is False
+                set_system_prompt_enabled(True)
+                assert is_system_prompt_enabled() is True
+        finally:
+            os.unlink(temp_file_path)
+
+    def test_toggle_does_not_touch_prompt_text(self):
+        """Test that disabling keeps the configured prompt text intact."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            prompt_path = f.name
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            enabled_path = f.name
+
+        try:
+            with patch.dict(
+                os.environ,
+                {
+                    "SYSTEM_PROMPT_FILE": prompt_path,
+                    "SYSTEM_PROMPT_ENABLED_FILE": enabled_path,
+                },
+            ):
+                set_system_prompt("Be terse.")
+                set_system_prompt_enabled(False)
+
+                assert is_system_prompt_enabled() is False
+                assert get_system_prompt() == "Be terse."
+        finally:
+            os.unlink(prompt_path)
+            os.unlink(enabled_path)
 
 
 class TestGetLLM:

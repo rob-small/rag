@@ -57,7 +57,12 @@ from nvidia_rag.rag_server.response_generator import (
     error_response_generator,
 )
 from nvidia_rag.utils.configuration import NvidiaRAGConfig
-from nvidia_rag.utils.llm import get_system_prompt, set_system_prompt
+from nvidia_rag.utils.llm import (
+    get_system_prompt,
+    is_system_prompt_enabled,
+    set_system_prompt,
+    set_system_prompt_enabled,
+)
 from nvidia_rag.utils.health_models import (
     DatabaseHealthInfo,
     NIMServiceHealthInfo,
@@ -870,12 +875,31 @@ class ConfigurationResponse(BaseModel):
 
 
 class SystemPromptRequest(BaseModel):
-    """Request body for updating the global system prompt."""
+    """Request body for updating the global system prompt.
 
-    system_prompt: str = Field(
+    Both fields are optional so the prompt text and its on/off state can be
+    updated independently; omitted fields are left untouched.
+    """
+
+    system_prompt: str | None = Field(
+        default=None,
         description="Instructions prepended to every chat and RAG model call to steer assistant behavior.",
         examples=["You are a concise, formal assistant for Acme Corp support."],
     )
+    enabled: bool | None = Field(
+        default=None,
+        description="Whether the system prompt is applied to chat and RAG requests.",
+        examples=[True],
+    )
+
+    @model_validator(mode="after")
+    def validate_at_least_one_field(self) -> "SystemPromptRequest":
+        """Reject empty request bodies, which would otherwise be a silent no-op."""
+        if self.system_prompt is None and self.enabled is None:
+            raise ValueError(
+                "At least one of 'system_prompt' or 'enabled' must be provided."
+            )
+        return self
 
 
 class SystemPromptResponse(BaseModel):
@@ -883,6 +907,9 @@ class SystemPromptResponse(BaseModel):
 
     system_prompt: str = Field(
         description="The currently configured global system prompt."
+    )
+    enabled: bool = Field(
+        description="Whether the system prompt is currently applied to chat and RAG requests."
     )
 
 
@@ -1337,13 +1364,17 @@ async def get_configuration():
 )
 async def get_system_prompt_config():
     """
-    Get the global system prompt.
+    Get the global system prompt and whether it is currently applied.
 
     Returns the custom system prompt currently prepended to the system message
-    of the chat and RAG generation pipelines. Empty string if none is set.
+    of the chat and RAG generation pipelines. Empty string if none is set. When
+    `enabled` is false the prompt is retained but not applied to requests.
     """
     try:
-        return SystemPromptResponse(system_prompt=get_system_prompt())
+        return SystemPromptResponse(
+            system_prompt=get_system_prompt(),
+            enabled=is_system_prompt_enabled(),
+        )
     except Exception as e:
         logger.error(f"Error fetching system prompt: {str(e)}")
         return JSONResponse(
@@ -1369,14 +1400,21 @@ async def get_system_prompt_config():
 )
 async def update_system_prompt_config(request: SystemPromptRequest):
     """
-    Update the global system prompt.
+    Update the global system prompt and/or whether it is applied.
 
-    Writes the provided text to disk. Takes effect on the very next chat or
-    RAG generation request; no server restart is required.
+    Writes the provided values to disk; omitted fields are left unchanged.
+    Takes effect on the very next chat or RAG generation request; no server
+    restart is required.
     """
     try:
-        set_system_prompt(request.system_prompt)
-        return SystemPromptResponse(system_prompt=request.system_prompt)
+        if request.system_prompt is not None:
+            set_system_prompt(request.system_prompt)
+        if request.enabled is not None:
+            set_system_prompt_enabled(request.enabled)
+        return SystemPromptResponse(
+            system_prompt=get_system_prompt(),
+            enabled=is_system_prompt_enabled(),
+        )
     except Exception as e:
         logger.error(f"Error updating system prompt: {str(e)}")
         return JSONResponse(

@@ -124,8 +124,8 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-# Include all YAML files inside rag_server
-"nvidia_rag.rag_server" = ["*.yaml"]
+# Include all YAML files inside rag_server, plus the system prompt text/state defaults
+"nvidia_rag.rag_server" = ["*.yaml", "*.txt"]
 # Include the filter grammar file in utils
 "nvidia_rag.utils" = ["*.lark"]
 

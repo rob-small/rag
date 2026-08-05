@@ -35,14 +35,27 @@ def client():
 
 @pytest.fixture
 def system_prompt_file():
-    """Create a temporary, writable system prompt file for the duration of a test."""
+    """Create temporary, writable system prompt state files for a test.
+
+    Yields the path of the prompt text file; the enabled-state file lives
+    alongside it and is pointed at by SYSTEM_PROMPT_ENABLED_FILE.
+    """
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
         temp_file_path = f.name
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        temp_enabled_path = f.name
 
-    with patch.dict(os.environ, {"SYSTEM_PROMPT_FILE": temp_file_path}):
+    with patch.dict(
+        os.environ,
+        {
+            "SYSTEM_PROMPT_FILE": temp_file_path,
+            "SYSTEM_PROMPT_ENABLED_FILE": temp_enabled_path,
+        },
+    ):
         yield temp_file_path
 
     os.unlink(temp_file_path)
+    os.unlink(temp_enabled_path)
 
 
 class TestGetSystemPromptEndpoint:
@@ -52,7 +65,7 @@ class TestGetSystemPromptEndpoint:
         response = client.get("/v1/system-prompt")
 
         assert response.status_code == 200
-        assert response.json() == {"system_prompt": ""}
+        assert response.json() == {"system_prompt": "", "enabled": True}
 
     def test_get_returns_configured_value(self, client, system_prompt_file):
         with open(system_prompt_file, "w", encoding="utf-8") as f:
@@ -61,7 +74,10 @@ class TestGetSystemPromptEndpoint:
         response = client.get("/v1/system-prompt")
 
         assert response.status_code == 200
-        assert response.json() == {"system_prompt": "You are a pirate assistant."}
+        assert response.json() == {
+            "system_prompt": "You are a pirate assistant.",
+            "enabled": True,
+        }
 
 
 class TestUpdateSystemPromptEndpoint:
@@ -74,12 +90,47 @@ class TestUpdateSystemPromptEndpoint:
         )
 
         assert response.status_code == 200
-        assert response.json() == {"system_prompt": "Always answer in Spanish."}
+        assert response.json() == {
+            "system_prompt": "Always answer in Spanish.",
+            "enabled": True,
+        }
 
         follow_up = client.get("/v1/system-prompt")
-        assert follow_up.json() == {"system_prompt": "Always answer in Spanish."}
+        assert follow_up.json() == {
+            "system_prompt": "Always answer in Spanish.",
+            "enabled": True,
+        }
 
-    def test_put_requires_system_prompt_field(self, client, system_prompt_file):
+    def test_put_requires_at_least_one_field(self, client, system_prompt_file):
         response = client.put("/v1/system-prompt", json={})
 
         assert response.status_code == 422
+
+    def test_put_enabled_false_keeps_prompt_text(self, client, system_prompt_file):
+        client.put("/v1/system-prompt", json={"system_prompt": "Be terse."})
+
+        response = client.put("/v1/system-prompt", json={"enabled": False})
+
+        assert response.status_code == 200
+        assert response.json() == {"system_prompt": "Be terse.", "enabled": False}
+
+        follow_up = client.get("/v1/system-prompt")
+        assert follow_up.json() == {"system_prompt": "Be terse.", "enabled": False}
+
+    def test_put_can_re_enable(self, client, system_prompt_file):
+        client.put("/v1/system-prompt", json={"enabled": False})
+
+        response = client.put("/v1/system-prompt", json={"enabled": True})
+
+        assert response.status_code == 200
+        assert response.json()["enabled"] is True
+
+    def test_put_updates_text_without_changing_enabled_state(
+        self, client, system_prompt_file
+    ):
+        client.put("/v1/system-prompt", json={"enabled": False})
+
+        response = client.put("/v1/system-prompt", json={"system_prompt": "New text."})
+
+        assert response.status_code == 200
+        assert response.json() == {"system_prompt": "New text.", "enabled": False}

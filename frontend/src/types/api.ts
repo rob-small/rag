@@ -236,7 +236,18 @@ export interface ConfigurationResponse {
 
 /**
  * The global system prompt applied to chat and RAG generation.
+ *
+ * When `enabled` is false the prompt text is retained on the server but is not
+ * prepended to any request.
  */
 export interface SystemPromptResponse {
   system_prompt: string;
+  enabled: boolean;
 }
+
+/**
+ * A partial update to the global system prompt. Omitted fields are left
+ * unchanged by the server, so the text and its on/off state can be updated
+ * independently.
+ */
+export type SystemPromptUpdate = Partial<SystemPromptResponse>;
