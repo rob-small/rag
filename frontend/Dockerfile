@@ -17,9 +17,12 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js LTS and pnpm
+# pnpm is pinned to 10.x: pnpm 11 dropped support for the "pnpm.overrides" field in
+# package.json (it moved to pnpm-workspace.yaml), which makes --frozen-lockfile below
+# fail against the committed lockfile.
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs && \
-    npm install -g pnpm
+    npm install -g pnpm@10
 
 # Print versions for debugging
 RUN node -v && pnpm -v
