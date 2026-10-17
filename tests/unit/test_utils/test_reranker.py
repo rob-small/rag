@@ -44,6 +44,7 @@ class TestGetRankingModelPrivate:
 
         mock_sanitize.assert_called_once_with("test-url:8000", "test-model", "ranking")
         mock_nvidia_rerank.assert_called_once_with(
+            model="test-model",
             base_url="http://test-url:8000",
             api_key="test-api-key",
             top_n=5,
@@ -131,6 +132,7 @@ class TestGetRankingModelPrivate:
         )  # No top_n specified
 
         mock_nvidia_rerank.assert_called_once_with(
+            model="test-model",
             base_url="http://test-url:8000",
             api_key="test-api-key",
             top_n=4,  # Default value
@@ -165,6 +167,7 @@ class TestGetRankingModelPrivate:
         result = _get_ranking_model("test-model", "test-url", 1000, config=mock_config)
 
         mock_nvidia_rerank.assert_called_once_with(
+            model="test-model",
             base_url="http://test-url:8000",
             api_key="test-api-key",
             top_n=1000,

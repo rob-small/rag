@@ -19,7 +19,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
 # Install Node.js LTS and pnpm
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs && \
-    npm install -g pnpm
+    npm install -g pnpm@10
 
 # Print versions for debugging
 RUN node -v && pnpm -v

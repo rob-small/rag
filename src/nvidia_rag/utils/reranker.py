@@ -68,7 +68,10 @@ def _get_ranking_model(
 
         if url:
             logger.info("Using ranking model hosted at %s", url)
+            # Pass the model so the client does not fall back to its default
+            # (retired) reranking model when only a base_url is given.
             return NVIDIARerank(
+                **({"model": model} if model else {}),
                 base_url=url,
                 api_key=api_key,
                 top_n=top_n,
