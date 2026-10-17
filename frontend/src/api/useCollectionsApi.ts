@@ -15,6 +15,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { CreateCollectionPayload } from "../types/api";
+import { apiFetch } from "./apiConfig";
 
 /**
  * Custom hook to fetch all available collections.
@@ -30,7 +31,7 @@ export function useCollections() {
   return useQuery({
     queryKey: ["collections"],
     queryFn: async () => {
-      const res = await fetch("/api/collections");
+      const res = await apiFetch("/api/collections");
       if (!res.ok) throw new Error("Failed to fetch collections");
       const json = await res.json();
       return json.collections;
@@ -59,7 +60,7 @@ export function useCreateCollection() {
 
   return useMutation({
     mutationFn: async (payload: CreateCollectionPayload) => {
-      const res = await fetch(`/api/collection`, {
+      const res = await apiFetch(`/api/collection`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -107,7 +108,7 @@ export function useDeleteCollection() {
 
   return useMutation({
     mutationFn: async (collectionName: string) => {      
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/collections`,
         {
           method: "DELETE",

@@ -22,6 +22,7 @@ import { useCollectionsStore } from "../store/useCollectionsStore";
 import { useSettingsStore } from "../store/useSettingsStore";
 import type { Collection, UIMetadataField } from "../types/collections";
 import type { CreateCollectionPayload } from "../types/api";
+import { apiFetch } from "../api/apiConfig";
 
 export function useNewCollectionForm() {
   const navigate = useNavigate();
@@ -133,7 +134,7 @@ export function useNewCollectionForm() {
           })
         );
 
-        const uploadResp = await fetch(`/api/documents`, {
+        const uploadResp = await apiFetch(`/api/documents`, {
           method: "POST",
           body: formData,
         });

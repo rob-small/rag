@@ -15,6 +15,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { DocumentItem } from "../types/api";
+import { apiFetch } from "./apiConfig";
 
 /**
  * Custom hook to fetch unique metadata values for a specific field across collections.
@@ -36,7 +37,7 @@ export function useMetadataValues(collectionNames: string[], field: string) {
     queryFn: async () => {
       const seen = new Set<string>();
       for (const name of collectionNames) {
-        const res = await fetch(
+        const res = await apiFetch(
           `/api/documents?collection_name=${encodeURIComponent(
             name
           )}`

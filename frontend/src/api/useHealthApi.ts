@@ -15,6 +15,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { HealthResponse } from "../types/api";
+import { apiFetch } from "./apiConfig";
 
 /**
  * Custom hook to fetch health status from the ingestor server.
@@ -25,7 +26,7 @@ export function useHealthStatus() {
   return useQuery<HealthResponse>({
     queryKey: ["health-status"],
     queryFn: async () => {
-      const res = await fetch("/api/health?check_dependencies=true");
+      const res = await apiFetch("/api/health?check_dependencies=true");
       if (!res.ok) throw new Error("Failed to fetch health status");
       return res.json();
     },

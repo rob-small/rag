@@ -15,6 +15,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { ConfigurationResponse } from "../types/api";
+import { apiFetch } from "./apiConfig";
 
 /**
  * Custom hook to fetch server configuration defaults from the RAG server.
@@ -36,7 +37,7 @@ export function useServerConfiguration() {
   return useQuery<ConfigurationResponse>({
     queryKey: ["server-configuration"],
     queryFn: async () => {
-      const res = await fetch("/api/configuration");
+      const res = await apiFetch("/api/configuration");
       if (!res.ok) throw new Error("Failed to fetch server configuration");
       return res.json();
     },

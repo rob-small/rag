@@ -16,6 +16,7 @@
 import { useState } from "react";
 import { useNotificationStore } from "../store/useNotificationStore";
 import { useCollectionConfigStore } from "../store/useCollectionConfigStore";
+import { apiFetch } from "../api/apiConfig";
 
 export function useUploadDocuments() {
   const { addTaskNotification } = useNotificationStore();
@@ -35,7 +36,7 @@ export function useUploadDocuments() {
     
     formData.append("data", JSON.stringify({ ...data.metadata, generate_summary: collectionConfig.generateSummary }));
 
-    fetch(`/api/documents?blocking=false`, {
+    apiFetch(`/api/documents?blocking=false`, {
       method: "POST",
       body: formData,
     })

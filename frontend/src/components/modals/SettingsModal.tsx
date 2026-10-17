@@ -21,6 +21,7 @@ import { RagConfigSection } from "../settings/RagConfigSection";
 import { FeatureTogglesSection } from "../settings/FeatureTogglesSection";
 import { ModelsSection } from "../settings/ModelsSection";
 import { EndpointsSection } from "../settings/EndpointsSection";
+import { ApiServersSection } from "../settings/ApiServersSection";
 import { AdvancedSection } from "../settings/AdvancedSection";
 import MetadataSchemaEditor from "../schema/MetadataSchemaEditor";
 import { useFeatureWarning } from "../../hooks/useFeatureWarning";
@@ -52,6 +53,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
           <ModelsSection />
 
           {/* Endpoints Configuration */}
+          <ApiServersSection />
           <EndpointsSection />
 
           {/* Other Settings */}

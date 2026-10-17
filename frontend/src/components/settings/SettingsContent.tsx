@@ -19,6 +19,7 @@ import { RagConfigSection } from './RagConfigSection';
 import { FeatureTogglesSection } from './FeatureTogglesSection';
 import { ModelsSection } from './ModelsSection';
 import { EndpointsSection } from './EndpointsSection';
+import { ApiServersSection } from './ApiServersSection';
 import { AdvancedSection } from './AdvancedSection';
 import { SystemPromptSection } from './SystemPromptSection';
 import {
@@ -104,6 +105,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({
                 <Text kind="body/regular/sm">
                   Set up API endpoints and connection settings.
               </Text>
+              <ApiServersSection />
               <EndpointsSection />
             </Stack>
           </Panel>

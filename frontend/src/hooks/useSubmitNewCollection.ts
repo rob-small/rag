@@ -22,6 +22,7 @@ import { openNotificationPanel } from "../components/notifications/NotificationB
 import { useQueryClient } from "@tanstack/react-query";
 import type { APIMetadataField } from "../types/collections";
 import type { CreateCollectionPayload } from "../types/api";
+import { apiFetch } from "../api/apiConfig";
 
 export function useSubmitNewCollection() {
   const navigate = useNavigate();
@@ -202,7 +203,7 @@ export function useSubmitNewCollection() {
 
         formData.append("data", JSON.stringify(metadata));
 
-        const res = await fetch(`/api/documents?blocking=false`, {
+        const res = await apiFetch(`/api/documents?blocking=false`, {
           method: "POST",
           body: formData,
         });

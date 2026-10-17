@@ -18,6 +18,7 @@ import { useChatStore } from "../store/useChatStore";
 import { useChatStream } from "../hooks/useChatStream";
 import { useStreamingStore } from "../store/useStreamingStore";
 import type { GenerateRequest } from "../types/requests";
+import { apiFetch } from "./apiConfig";
 
 /**
  * Arguments for sending a message.
@@ -55,7 +56,7 @@ export const useSendMessage = () => {
       setStreaming(true, assistantId);
       const controller = startStream();
 
-      const res = await fetch(`/api/generate`, {
+      const res = await apiFetch(`/api/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(request),

@@ -15,6 +15,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { CollectionDocumentsResponse } from "../types/api";
+import { apiFetch } from "./apiConfig";
 
 /**
  * Custom hook to fetch documents from a specific collection.
@@ -31,7 +32,7 @@ export const useCollectionDocuments = (collectionName: string) =>
   useQuery<CollectionDocumentsResponse>({
     queryKey: ["collection-documents", collectionName],
     queryFn: async () => {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/documents?collection_name=${encodeURIComponent(collectionName)}`
       );
       if (!res.ok) throw new Error("Failed to fetch documents");
@@ -54,7 +55,7 @@ export const useCollectionDocuments = (collectionName: string) =>
 export function useDeleteAllDocuments() {
   return useMutation({
     mutationFn: async (collectionName: string) => {   
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/documents?collection_name=${encodeURIComponent(collectionName)}`,
         {
           method: "DELETE",
@@ -74,7 +75,7 @@ export function useDeleteAllDocuments() {
 export function useDeleteDocument() {
   return useMutation({
     mutationFn: async ({ collectionName, documentName }: { collectionName: string; documentName: string }) => {      
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/documents?collection_name=${encodeURIComponent(collectionName)}`,
         {
           method: "DELETE",
@@ -116,7 +117,7 @@ export interface UpdateDocumentMetadataPayload {
 export function useUpdateDocumentMetadata() {
   return useMutation({
     mutationFn: async ({ collectionName, documentName, description, tags }: UpdateDocumentMetadataPayload) => {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/collections/${encodeURIComponent(collectionName)}/documents/${encodeURIComponent(documentName)}/metadata`,
         {
           method: "PATCH",

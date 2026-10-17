@@ -15,6 +15,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { IngestionTask } from "../types/api";
+import { apiFetch } from "./apiConfig";
 
 /**
  * Custom hook to fetch and poll ingestion task status.
@@ -32,7 +33,7 @@ export function useIngestionTasks(taskId: string, enabled: boolean) {
   return useQuery<IngestionTask>({
     queryKey: ["task-status", taskId],
     queryFn: async () => {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/status?task_id=${taskId}`
       );
       if (!res.ok) throw new Error("Failed to fetch task status");

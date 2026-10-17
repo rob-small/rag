@@ -14,6 +14,7 @@
 // limitations under the License.
 
 import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "./apiConfig";
 
 export interface DocumentSummaryResponse {
   summary: string;
@@ -35,7 +36,7 @@ export function useDocumentSummary(collectionName: string, fileName: string) {
       params.append("collection_name", collectionName);
       params.append("file_name", fileName);
 
-      const res = await fetch(`/api/summary?${params.toString()}`);
+      const res = await apiFetch(`/api/summary?${params.toString()}`);
       if (!res.ok) {
         // Return NOT_FOUND for 404, let other errors throw
         if (res.status === 404) {

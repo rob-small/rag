@@ -15,6 +15,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { SystemPromptResponse } from "../types/api";
+import { apiFetch } from "./apiConfig";
 
 const SYSTEM_PROMPT_QUERY_KEY = ["system-prompt"];
 
@@ -33,7 +34,7 @@ export function useSystemPrompt() {
   return useQuery<SystemPromptResponse>({
     queryKey: SYSTEM_PROMPT_QUERY_KEY,
     queryFn: async () => {
-      const res = await fetch("/api/system-prompt");
+      const res = await apiFetch("/api/system-prompt");
       if (!res.ok) throw new Error("Failed to fetch system prompt");
       return res.json();
     },
@@ -58,7 +59,7 @@ export function useUpdateSystemPrompt() {
 
   return useMutation({
     mutationFn: async (systemPrompt: string) => {
-      const res = await fetch("/api/system-prompt", {
+      const res = await apiFetch("/api/system-prompt", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ system_prompt: systemPrompt }),
