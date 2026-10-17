@@ -56,6 +56,8 @@ export interface ChatMessage {
   content: MessageContent;
   timestamp: string;
   citations?: Citation[];
+  /** Model reasoning (chain-of-thought) streamed separately from the answer. */
+  reasoning?: string;
   is_error?: boolean;
 }
 

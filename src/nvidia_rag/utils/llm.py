@@ -36,7 +36,11 @@ from langchain_core.language_models.chat_models import SimpleChatModel
 from langchain_core.messages import AIMessageChunk
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 
-from nvidia_rag.rag_server.response_generator import APIError, ErrorCodeMapping
+from nvidia_rag.rag_server.response_generator import (
+    REASONING_PREFIX,
+    APIError,
+    ErrorCodeMapping,
+)
 from nvidia_rag.utils.common import (
     NVIDIA_API_DEFAULT_HEADERS,
     combine_dicts,
@@ -661,7 +665,9 @@ def get_streaming_filter_think_parser():
         return RunnablePassthrough()
 
 
-async def streaming_filter_think_async(chunks, enable_thinking: bool = False):
+async def streaming_filter_think_async(
+    chunks, enable_thinking: bool = False, emit_reasoning: bool = False
+):
     """
     Async version of streaming_filter_think.
     This async generator filters content between think tags in streaming LLM responses.
@@ -678,6 +684,9 @@ async def streaming_filter_think_async(chunks, enable_thinking: bool = False):
         chunks: Async iterable of chunks from a streaming LLM response
         enable_thinking: When True, drop reasoning_content (genuine chain-of-thought).
             When False, fall back to reasoning_content if content is empty (model quirk).
+        emit_reasoning: When True, reasoning_content is yielded as strings prefixed
+            with REASONING_PREFIX instead of being dropped or merged into the answer.
+            The consumer must strip the prefix (see generate_answer_async).
 
     Yields:
         str: Filtered content with think blocks removed
@@ -706,7 +715,11 @@ async def streaming_filter_think_async(chunks, enable_thinking: bool = False):
 
     async for chunk in chunks:
         reasoning, content = extract_reasoning_and_content(chunk)
-        content = content if enable_thinking else (content or reasoning)
+        if emit_reasoning:
+            if reasoning:
+                yield REASONING_PREFIX + reasoning
+        elif not enable_thinking:
+            content = content or reasoning
         chunk_count += 1
 
         # Accumulate reasoning when DEBUG logging is enabled (e.g. reasoning_content from nemotron-3-nano)
@@ -864,7 +877,9 @@ async def _content_fallback_async(chunks, enable_thinking: bool = False):
                 yield AIMessageChunk(content=text)
 
 
-def get_streaming_filter_think_parser_async(enable_thinking: bool = False):
+def get_streaming_filter_think_parser_async(
+    enable_thinking: bool = False, emit_reasoning: bool = False
+):
     """
     Creates and returns an async RunnableGenerator for filtering think tokens.
 
@@ -877,6 +892,8 @@ def get_streaming_filter_think_parser_async(enable_thinking: bool = False):
         enable_thinking: When True, reasoning_content is genuine chain-of-thought and
             will be dropped. When False, reasoning_content is used as a fallback if
             content is empty (workaround for model quirk).
+        emit_reasoning: When True, reasoning_content is passed downstream tagged with
+            REASONING_PREFIX so it can be displayed separately from the answer.
 
     Returns:
         RunnableGenerator: An async parser for filtering or content normalization
@@ -889,7 +906,13 @@ def get_streaming_filter_think_parser_async(enable_thinking: bool = False):
 
     if filter_enabled:
         logger.info("Think token filtering is enabled (async), enable_thinking=%s", enable_thinking)
-        return RunnableGenerator(partial(streaming_filter_think_async, enable_thinking=enable_thinking))
+        return RunnableGenerator(
+            partial(
+                streaming_filter_think_async,
+                enable_thinking=enable_thinking,
+                emit_reasoning=emit_reasoning,
+            )
+        )
     else:
         logger.info("Think token filtering is disabled (async), enable_thinking=%s", enable_thinking)
         return RunnableGenerator(partial(_content_fallback_async, enable_thinking=enable_thinking))

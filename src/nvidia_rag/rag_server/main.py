@@ -266,6 +266,14 @@ class NvidiaRAG:
         self.StreamingFilterThinkParser = get_streaming_filter_think_parser_async(
             enable_thinking=self.config.llm.parameters.enable_thinking
         )
+        # Variant used by chains streamed straight to the client: model reasoning
+        # is tagged so generate_answer_async can send it on a separate field.
+        self.ReasoningStreamingFilterThinkParser = (
+            get_streaming_filter_think_parser_async(
+                enable_thinking=self.config.llm.parameters.enable_thinking,
+                emit_reasoning=True,
+            )
+        )
 
         if self._init_errors:
             logger.warning(
@@ -1526,7 +1534,7 @@ class NvidiaRAG:
             chain = (
                 prompt_template
                 | llm
-                | self.StreamingFilterThinkParser
+                | self.ReasoningStreamingFilterThinkParser
                 | StrOutputParser()
             )
             # Create async stream generator
@@ -2993,8 +3001,15 @@ class NvidiaRAG:
                 )
             else:
                 logger.info("Starting LLM stream generation...")
+                # Stream with reasoning split out so the UI can show it separately
+                stream_chain = (
+                    prompt
+                    | llm
+                    | self.ReasoningStreamingFilterThinkParser
+                    | StrOutputParser()
+                )
                 # Create async stream generator
-                stream_gen = chain.astream(
+                stream_gen = stream_chain.astream(
                     {"question": query, "context": docs},
                     config={"run_name": "llm-stream"},
                 )

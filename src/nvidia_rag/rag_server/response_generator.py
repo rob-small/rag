@@ -47,6 +47,11 @@ from nvidia_rag.utils.observability.otel_metrics import OtelMetrics
 
 logger = logging.getLogger(__name__)
 
+# Prefix marking a streamed string as model reasoning rather than answer text.
+# Emitted by the LLM think-filter (nvidia_rag.utils.llm) and split back out into
+# the separate "reasoning" field of the streamed response by generate_answer_async.
+REASONING_PREFIX = "@@RAG_REASONING@@"
+
 
 class ErrorCodeMapping:
     """Centralized mapping for HTTP status codes based on error types"""
@@ -275,6 +280,11 @@ class Message(BaseModel):
         description="The input query/prompt to the pipeline. Can be a string for text-only messages, "
         "or an array of content objects for multimodal messages containing text and/or images.",
         default="Hello! What can you help me with?",
+    )
+    reasoning: str | None = Field(
+        description="Model reasoning (chain-of-thought) text, streamed separately "
+        "from the answer content when the model provides it.",
+        default=None,
     )
 
     @validator("role")
@@ -610,7 +620,32 @@ async def generate_answer_async(
             rag_ttft_ms: float | None = None
             llm_generation_time_ms: float | None = None
             accumulated_response = ""  # Track complete response for logging
+            accumulated_reasoning = ""
             async for chunk in generator:
+                # Reasoning chunks are streamed to the client on their own field
+                if chunk.startswith(REASONING_PREFIX):
+                    reasoning_text = chunk[len(REASONING_PREFIX) :]
+                    accumulated_reasoning += reasoning_text
+                    reasoning_response = ChainResponse()
+                    reasoning_response.id = resp_id
+                    reasoning_response.choices.append(  # pylint: disable=E1101
+                        ChainResponseChoices(
+                            index=0,
+                            message=Message(
+                                role="assistant", content="", reasoning=reasoning_text
+                            ),
+                            delta=Message(
+                                role=None, content="", reasoning=reasoning_text
+                            ),
+                            finish_reason=None,
+                        )
+                    )
+                    reasoning_response.model = model
+                    reasoning_response.object = "chat.completion.chunk"
+                    reasoning_response.created = int(time.time())
+                    yield "data: " + str(reasoning_response.json()) + "\n\n"
+                    continue
+
                 # Accumulate chunks for final logging
                 accumulated_response += chunk
                 
@@ -652,6 +687,29 @@ async def generate_answer_async(
                 logger.debug(response_choice)
                 # Send generator with tokens in ChainResponse format
                 yield "data: " + str(chain_response.json()) + "\n\n"
+
+            # Some models put their entire reply in the reasoning field. If no
+            # answer text arrived, surface the reasoning as the answer.
+            if not accumulated_response and accumulated_reasoning:
+                fallback_response = ChainResponse()
+                fallback_response.id = resp_id
+                fallback_response.choices.append(  # pylint: disable=E1101
+                    ChainResponseChoices(
+                        index=0,
+                        message=Message(role="assistant", content=accumulated_reasoning),
+                        delta=Message(role=None, content=accumulated_reasoning),
+                        finish_reason=None,
+                    )
+                )
+                fallback_response.model = model
+                fallback_response.object = "chat.completion.chunk"
+                fallback_response.created = int(time.time())
+                fallback_response.citations = prepare_citations(
+                    retrieved_documents=contexts,
+                    enable_citations=enable_citations,
+                )
+                accumulated_response = accumulated_reasoning
+                yield "data: " + str(fallback_response.json()) + "\n\n"
 
             # Log the complete LLM response
             logger.info("=" * 80)

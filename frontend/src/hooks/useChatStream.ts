@@ -15,6 +15,7 @@
 
 import { useState, useRef } from "react";
 import type { ChatMessage, Citation } from "../types/chat";
+import { useReasoningStore } from "../store/useReasoningStore";
 
 /**
  * Interface representing the state of a chat stream.
@@ -78,6 +79,7 @@ export const useChatStream = () => {
     const decoder = new TextDecoder();
     let buffer = "";
     let content = "";
+    let reasoning = "";
     let latestCitations: ChatMessage["citations"] = [];
     
     // Detect if this is an error response based on HTTP status code
@@ -98,6 +100,13 @@ export const useChatStream = () => {
           const json = JSON.parse(line.slice(6));
           const delta = json.choices?.[0]?.delta?.content;
           if (delta) content += delta;
+
+          const reasoningDelta = json.choices?.[0]?.delta?.reasoning;
+          if (reasoningDelta) {
+            // Show the reasoning window as soon as reasoning starts streaming
+            if (!reasoning) useReasoningStore.getState().open(assistantId);
+            reasoning += reasoningDelta;
+          }
 
           // Extract citations from any expected location
           const sources =
@@ -127,6 +136,7 @@ export const useChatStream = () => {
 
           updateMessage(assistantId, {
             content,
+            reasoning: reasoning || undefined,
             citations: latestCitations && latestCitations.length ? latestCitations : undefined,
             is_error: isError,
           });

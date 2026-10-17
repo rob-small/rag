@@ -19,12 +19,14 @@ import { useStreamingStore } from "../../store/useStreamingStore";
 import { MessageContent } from "./MessageContent";
 import { StreamingIndicator } from "./StreamingIndicator";
 import { CitationButton } from "../citations/CitationButton";
+import { useReasoningStore } from "../../store/useReasoningStore";
 import { 
   Block, 
   Flex, 
   Stack, 
   Panel,
-  Modal
+  Modal,
+  Button
 } from "@kui/react";
 
 /**
@@ -163,6 +165,7 @@ const RegularMessage = ({ msg }: { msg: ChatMessage }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const textContent = extractTextFromContent(msg.content ?? "");
   const images = extractImagesFromContent(msg.content ?? "");
+  const openReasoning = useReasoningStore((s) => s.open);
   
   return (
     <>
@@ -185,6 +188,13 @@ const RegularMessage = ({ msg }: { msg: ChatMessage }) => {
             <MessageContent content={textContent} />
           </Block>
           {msg.citations?.length && <CitationButton citations={msg.citations} />}
+          {msg.reasoning && (
+            <Flex>
+              <Button kind="tertiary" size="small" onClick={() => openReasoning(msg.id)}>
+                View reasoning
+              </Button>
+            </Flex>
+          )}
         </Stack>
       </MessageContainer>
       

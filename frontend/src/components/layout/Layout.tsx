@@ -17,6 +17,7 @@ import { useEffect, type JSX } from "react";
 import Header from "./Header";
 import { ThemeProvider } from "@kui/react";
 import { useTheme } from "../../hooks/useTheme";
+import { ReasoningPanel } from "../chat/ReasoningPanel";
 
 /**
  * Main layout component that provides the application structure.
@@ -46,6 +47,7 @@ const Layout = ({ children }: { children: JSX.Element | JSX.Element[] }) => {
       }}>
         {children}
       </div>
+      <ReasoningPanel />
     </ThemeProvider>
   )
 }
